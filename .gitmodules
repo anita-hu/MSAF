@@ -1,0 +1,6 @@
+[submodule "cmu_mosei/CMU-MultimodalSDK"]
+	path = cmu_mosei/CMU-MultimodalSDK
+	url = https://github.com/A2Zadeh/CMU-MultimodalSDK.git
+[submodule "ntu_rgb_d/mfas"]
+	path = ntu_rgb_d/mfas
+	url = https://github.com/juanmanpr/mfas.git
