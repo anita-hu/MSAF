@@ -1,7 +1,7 @@
 ## CMU-MOSEI Dataset
 This code reproduces our results on CMU-MOSEI dataset in Table 2 of our paper.
 
-### Setup
+## Setup
 Install dependencies for CMU-MultimodalSDK
 ```
 pip install h5py validators tqdm numpy argparse requests colorama
@@ -31,13 +31,13 @@ dataset/  # based on --datadir argument
         .npy files
 ```
 
-### Evaluate
+## Evaluate
 ```
 python main_msaf.py --datadir dataset \
 --checkpoint checkpoints/msaf_mosei_epoch6.pth
 ```
 
-### Train
+## Train
 Basic training command
 ```
 python main_msaf.py --datadir dataset --train

@@ -180,7 +180,7 @@ def train_mmtm_track_acc(model, criteria, optimizers, dataloaders, dataset_sizes
                     best_loss = avg_loss
                     best_model_sd = copy.deepcopy(model.state_dict())
                 filename = (args.checkpointdir +
-                            '/msaf_ntu_' + args.model + '_epoch{}_val_loss{:.4f}.checkpoint'.format(
+                            '/msaf_ntu_epoch{}_val_loss{:.4f}.checkpoint'.format(
                                 epoch, avg_loss))
                 torch.save(model.state_dict(), filename)
                 print('Saving ' + filename)

@@ -1,7 +1,7 @@
 ## NTU RGB+D Dataset
 This code reproduces our results on NTU RGB+D dataset in Table 3 of our paper.
 
-### Setup
+## Setup
 Download the NTU RGB+D dataset. Using the following folder structure
 ```
 NTU/
@@ -24,14 +24,14 @@ Dependencies
 pip install matplotlib opencv-python
 ```
 
-### Evaluate
+## Evaluate
 ```
 python main_msaf.py --datadir <path/to/NTU> \
 --checkpointdir checkpoints \
 --no_bad_skel --model msaf --rgb_net i3d --vid_len 32 32
 ```
 
-### Train
+## Train
 ```
 python main_msaf.py --datadir <path/to/NTU> \ 
 --checkpointdir checkpoints --train \
@@ -52,8 +52,9 @@ usage: main_msaf.py [-h] [--rgb_net {resnet,i3d}]
                     [--no_bad_skel] [--no_norm]
                     [--fc_final_preds FC_FINAL_PREDS] [--train]
 ```
+If you want to train with resnet as the RGB model, download pretrained checkpoint `rgb_8frames_83.91.checkpoint` from [Google Drive link](https://drive.google.com/drive/folders/1wcIepkmCf2NRfnhXVdoNu6wSxkpZmMNm). Need to change --vid_len to `[8 32]`
 
-### Reference
+## Reference
 This code is built upon the [MMTM github repository](https://github.com/haamoon/mmtm) and the [MFAS github repository](https://github.com/juanmanpr/mfas)
 
 To cite their papers
