@@ -22,13 +22,13 @@ import torch
 import torch.nn as nn
 
 import sys
-sys.path.append('../..')
+sys.path.append('..')
 from MSAF import MSAF
 
 
-class msafLSTMNet(nn.Module):
+class MSAFLSTMNet(nn.Module):
     def __init__(self, model_param):
-        super(msafLSTMNet, self).__init__()
+        super(MSAFLSTMNet, self).__init__()
         # Locations: the features from the previous layer index will be passed to a msaf module
         self.msaf_locations = [1]
         # MSAF blocks

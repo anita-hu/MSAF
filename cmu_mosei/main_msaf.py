@@ -26,7 +26,7 @@ import numpy as np
 import torch.utils.data as data
 from torch.utils.tensorboard import SummaryWriter
 from cmu_mosei import CMUMOSEIDataset
-from models import *
+from networks import *
 from main_utils import train, validation
 
 # fixed seed
@@ -123,7 +123,7 @@ if __name__ == '__main__':
                 'model': model,
                 'id': modalities.index('bert')
             }})
-    multimodal_model = msafLSTMNet(model_param)
+    multimodal_model = MSAFLSTMNet(model_param)
     multimodal_model.to(device)
 
     # loss functions

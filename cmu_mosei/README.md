@@ -1,5 +1,5 @@
 ## CMU-MOSEI Dataset
-This code reproduces our results on CMU-MOSEI dataset in Table 2 of the paper.
+This code reproduces our results on CMU-MOSEI dataset in Table 2 of our paper.
 
 ### Setup
 Install dependencies for CMU-MultimodalSDK

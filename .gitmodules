@@ -3,4 +3,4 @@
 	url = https://github.com/A2Zadeh/CMU-MultimodalSDK.git
 [submodule "ntu_rgb_d/mfas"]
 	path = ntu_rgb_d/mfas
-	url = https://github.com/juanmanpr/mfas.git
+	url = https://github.com/anita-hu/mfas.git
