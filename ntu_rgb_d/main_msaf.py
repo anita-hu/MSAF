@@ -1,30 +1,29 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Copyright (c) 2020 Amirreza Shaban (from MMTM github https://github.com/haamoon/mmtm)
-Copyright (c) 2020 Anita Hu and Kevin Su
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-"""
+#
+# Copyright (c) 2020 Amirreza Shaban (from MMTM github https://github.com/haamoon/mmtm)
+# Copyright (c) 2020 Anita Hu and Kevin Su
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 
 import sys
+
 sys.path.append('mfas')
 from models.central.ntu import Visual, Skeleton
 from models.auxiliary.I3D import I3D
@@ -45,7 +44,8 @@ from msaf_ntu import MSAFNet
 # %% Parse inputs
 def parse_args():
     parser = argparse.ArgumentParser(description='Modality optimization.')
-    parser.add_argument('--rgb_net', type=str, help='name of rgb model that is loaded', default='resnet', choices=['resnet', 'i3d'])
+    parser.add_argument('--rgb_net', type=str, help='name of rgb model that is loaded', default='resnet',
+                        choices=['resnet', 'i3d'])
     parser.add_argument('--checkpointdir', type=str, help='output base dir', default='checkpoints')
     parser.add_argument('--datadir', type=str, help='data directory', default='dataset')
     parser.add_argument('--ske_cp', type=str, help='Skeleton net checkpoint (assuming is contained in checkpointdir)',
@@ -278,7 +278,7 @@ if __name__ == "__main__":
     model.set_return_both(True)
 
     visual = Visual(args) if args.rgb_net == 'resnet' else I3D(num_classes=60, dropout_drop_prob=0.5,
-                                                                       input_channel=3, spatial_squeeze=True)
+                                                               input_channel=3, spatial_squeeze=True)
     skeleton = Skeleton(args)
     model.set_visual_skeleton_nets(visual, skeleton)
 
@@ -292,7 +292,7 @@ if __name__ == "__main__":
             print('Acc Multimodal: {:.4f}, Acc Visual: {:.4f}, Acc Skeleton: {:.4f}'.format(*test_acc))
         else:
             print("Evaluating all fusion models in checkpoint dir...")
-            checkpoint_dir = os.path.join(args.checkpointdir, "fusion*")
+            checkpoint_dir = os.path.join(args.checkpointdir, "msaf_ntu*")
             for each_w in glob.glob(checkpoint_dir):
                 each_w = os.path.basename(each_w)
                 args.test_cp = each_w

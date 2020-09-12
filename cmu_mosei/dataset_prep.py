@@ -60,7 +60,7 @@ def bert_features(model, tokenizer, data, batch_size=1):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--datadir', type=str, help='dataset directory', default='dataset')
+    parser.add_argument('--datadir', type=str, help='dataset directory', default='CMU_MOSEI')
     args = parser.parse_args()
 
     DATA_PATH = args.datadir

@@ -1,5 +1,5 @@
 ## NTU RGB+D Dataset
-This code reproduces our results on NTU RGB+D dataset in Table 3 of our paper.
+This code along with our trained weights reproduces our results on NTU RGB+D dataset in Table 3 of our paper.
 
 ## Setup
 Download the NTU RGB+D dataset. Using the following folder structure
@@ -19,24 +19,32 @@ Sample bash command to change video clip resolution
 mkdir avi_256x256_30
 for i in *.avi; do ffmpeg -i "$i" -s 256x256 -c:a copy "avi_256x256_30/$i"; done
 ```
-Dependencies
+Install dependencies
 ```
 pip install matplotlib opencv-python
 ```
 
 ## Evaluate
+To evaluate one checkpoint file
 ```
 python main_msaf.py --datadir <path/to/NTU> \
 --checkpointdir checkpoints \
---no_bad_skel --model msaf --rgb_net i3d --vid_len 32 32
+--test_cp msaf_ntu_epoch12_92.24.checkpoint \
+--no_bad_skel --rgb_net i3d --vid_len 32 32
+```
+To evaluate all msaf checkpoints in a folder
+```
+python main_msaf.py --datadir <path/to/NTU> \
+--checkpointdir checkpoints \
+--no_bad_skel --rgb_net i3d --vid_len 32 32
 ```
 
 ## Train
 ```
-python main_msaf.py --datadir <path/to/NTU> \ 
+python main_msaf.py --datadir <path/to/NTU> \
 --checkpointdir checkpoints --train \
 --ske_cp skeleton_32frames_85.24.checkpoint \
---rgb_net i3d \ 
+--rgb_net i3d \
 --rgb_cp i3d_32frames_85.63.checkpoint \
 --vid_len 32 32
 ```
@@ -52,7 +60,7 @@ usage: main_msaf.py [-h] [--rgb_net {resnet,i3d}]
                     [--no_bad_skel] [--no_norm]
                     [--fc_final_preds FC_FINAL_PREDS] [--train]
 ```
-If you want to train with resnet as the RGB model, download pretrained checkpoint `rgb_8frames_83.91.checkpoint` from [Google Drive link](https://drive.google.com/drive/folders/1wcIepkmCf2NRfnhXVdoNu6wSxkpZmMNm). Need to change --vid_len to `[8 32]`
+If you want to train with resnet as the RGB model, download pretrained checkpoint `rgb_8frames_83.91.checkpoint` from [Google Drive link](https://drive.google.com/drive/folders/1wcIepkmCf2NRfnhXVdoNu6wSxkpZmMNm) and use `--vid_len [8 32]` and `--rgb_net resnet`
 
 ## Reference
 This code is built upon the [MMTM github repository](https://github.com/haamoon/mmtm) and the [MFAS github repository](https://github.com/juanmanpr/mfas)

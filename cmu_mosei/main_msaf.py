@@ -53,13 +53,13 @@ def get_X(device, sample):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--datadir', type=str, help='dataset directory', default='dataset')
+    parser.add_argument('--datadir', type=str, help='dataset directory', default='CMU_MOSEI')
     parser.add_argument('--lr', type=float, help='learning rate', default=0.001)
     parser.add_argument('--batch_size', type=int, help='batch size', default=16)
     parser.add_argument('--num_workers', type=int, help='num workers', default=4)
     parser.add_argument('--epochs', type=int, help='train epochs', default=10)
     parser.add_argument('--checkpoint', type=str, help='model checkpoint for evaluation', default='')
-    parser.add_argument('--save_path', type=str, help='path to save weights', default='checkpoints')
+    parser.add_argument('--model_dir', type=str, help='directory to save weights', default='checkpoints')
     parser.add_argument('--no_verbose', action='store_true', default=False, help='turn off verbose for training')
     parser.add_argument('--log_interval', type=int, help='interval for displaying training info if verbose', default=10)
     parser.add_argument('--no_save', action='store_true', default=False, help='set to not save model weights')
@@ -138,7 +138,7 @@ if __name__ == '__main__':
 
         # record training process
         current_time = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
-        train_log_dir = os.path.join(args.save_path, 'logs/{}'.format(current_time))
+        train_log_dir = os.path.join(args.model_dir, 'logs/{}'.format(current_time))
         writer = SummaryWriter(log_dir=train_log_dir)
         test = []
 
@@ -156,7 +156,7 @@ if __name__ == '__main__':
                     'test_score': epoch_test_score,
                     'test_loss': epoch_test_loss
                 }
-                torch.save(states, os.path.join(args.save_path, 'msaf_mosei_epoch{}.pth'.format(epoch + 1)))
+                torch.save(states, os.path.join(args.model_dir, 'msaf_mosei_epoch{}.pth'.format(epoch + 1)))
                 print('Epoch {} model saved!'.format(epoch + 1))
 
             # save results
