@@ -6,6 +6,12 @@ If you use this code, please cite our paper:
 ```
 
 ## Installation
+Clone this repo along with submodules
+```
+git clone --recurse-submodules https://github.com/anita-hu/MSAF.git
+```
+Install dependencies
+
 **Method 1**: Using requirements.txt (installs dependencies for all three datasets)
 ```
 conda create --name msaf --file requirements.txt
