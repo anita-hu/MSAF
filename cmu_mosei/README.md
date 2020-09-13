@@ -47,6 +47,6 @@ All parameters
 usage: main_msaf.py [-h] [--datadir DATADIR] [--lr LR]
                     [--batch_size BATCH_SIZE] [--num_workers NUM_WORKERS]
                     [--epochs EPOCHS] [--checkpoint CHECKPOINT]
-                    [--model_dir MODEL_DIR] [--no_verbose]
+                    [--checkpointdir CHECKPOINTDIR] [--no_verbose]
                     [--log_interval LOG_INTERVAL] [--no_save] [--train]
 ```

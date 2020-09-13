@@ -29,7 +29,7 @@ import torch.utils.data as data
 import torchvision.transforms as transforms
 from networks import *
 from ravdess import RAVDESSDataset
-from main_util import train, validation
+from main_utils import train, validation
 
 
 # Parameters
@@ -72,7 +72,7 @@ if __name__ == "__main__":
     parser.add_argument('--batch_size', type=int, help='batch size', default=4)
     parser.add_argument('--num_workers', type=int, help='num workers', default=4)
     parser.add_argument('--epochs', type=int, help='train epochs', default=70)
-    parser.add_argument('--model_dir', type=str, help='directory to save/read weights', default='checkpoints')
+    parser.add_argument('--checkpointdir', type=str, help='directory to save/read weights', default='checkpoints')
     parser.add_argument('--no_verbose', action='store_true', default=False, help='turn off verbose for training')
     parser.add_argument('--log_interval', type=int, help='interval for displaying training info if verbose', default=10)
     parser.add_argument('--no_save', action='store_true', default=False, help='set to not save model weights')
@@ -139,7 +139,7 @@ if __name__ == "__main__":
 
             # record training process
             current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-            train_log_dir = os.path.join(args.model_dir, 'logs/fold{}_{}'.format(i, current_time))
+            train_log_dir = os.path.join(args.checkpointdir, 'logs/fold{}_{}'.format(i + 1, current_time))
             writer = SummaryWriter(log_dir=train_log_dir)
 
             # define model
@@ -151,10 +151,10 @@ if __name__ == "__main__":
                     cardinality=32,
                     sample_size=224,
                     sample_duration=30)
-                video_model_path = os.path.join(args.model_dir, "resnext50/fold_{}_resnext50_best.pth".format(i+1))
+                video_model_path = os.path.join(args.checkpointdir, "resnext50/fold_{}_resnext50_best.pth".format(i+1))
                 video_model_checkpoint = torch.load(video_model_path) if use_cuda else \
                     torch.load(video_model_path, map_location=torch.device('cpu'))
-                video_model.load_state_dict(video_model_checkpoint.state_dict())
+                video_model.load_state_dict(video_model_checkpoint)
                 model_param.update(
                     {"video": {
                         "model": video_model,
@@ -162,11 +162,11 @@ if __name__ == "__main__":
                     }})
 
             if "audio" in modalities:
-                audio_model = mfccNet()
-                audio_model_path = os.path.join(args.model_dir, "mfccNet/fold_{}_mfccNet_best.pth".format(i + 1))
+                audio_model = MFCCNet()
+                audio_model_path = os.path.join(args.checkpointdir, "mfccNet/fold_{}_mfccNet_best.pth".format(i + 1))
                 audio_model_checkpoint = torch.load(audio_model_path) if use_cuda else \
                     torch.load(audio_model_path, map_location=torch.device('cpu'))
-                audio_model.load_state_dict(audio_model_checkpoint.state_dict())
+                audio_model.load_state_dict(audio_model_checkpoint)
                 model_param.update(
                     {"audio": {
                         "model": audio_model,
@@ -193,8 +193,8 @@ if __name__ == "__main__":
 
                 if not args.no_save and epoch_test_score[0] > best_acc_1:
                     best_acc_1 = epoch_test_score[0]
-                    torch.save(multimodal_model, os.path.join(args.model_dir,
-                                                              'fold_{}_msaf_ravdess_best.pth'.format(i + 1)))
+                    torch.save(multimodal_model.state_dict(),
+                               os.path.join(args.checkpointdir, 'fold_{}_msaf_ravdess_best.pth'.format(i + 1)))
                     print("Epoch {} model saved!".format(epoch + 1))
 
                 # save results
@@ -214,7 +214,7 @@ if __name__ == "__main__":
             top_scores.append(test[:, 0].max())
         print("Scores for each fold: ")
         print(top_scores)
-        print("Averaged score for {} fold training: {:.2f}%".format(k, sum(top_scores) / len(top_scores)))
+        print("Averaged score for {} fold training: {:.2f}%".format(args.k_fold, sum(top_scores) / len(top_scores)))
 
     else:
         # kfold eval
@@ -231,15 +231,37 @@ if __name__ == "__main__":
             print([os.path.basename(act) for act in val_fold])
 
             # define model
-            model_path = os.path.join(args.model_dir, 'fold_{}_msaf_ravdess_best.pth'.format(i + 1))
-            model = MSAFNet()
+            model_param = {}
+            if "video" in modalities:
+                video_model = resnet50(
+                    num_classes=8,
+                    shortcut_type='B',
+                    cardinality=32,
+                    sample_size=224,
+                    sample_duration=30)
+                model_param.update(
+                    {"video": {
+                        "model": video_model,
+                        "id": modalities.index("video")
+                    }})
+
+            if "audio" in modalities:
+                audio_model = MFCCNet()
+                model_param.update(
+                    {"audio": {
+                        "model": audio_model,
+                        "id": modalities.index("audio")
+                    }})
+
+            model_path = os.path.join(args.checkpointdir, 'fold_{}_msaf_ravdess_best.pth'.format(i + 1))
+            model = MSAFNet(model_param)
             checkpoint = torch.load(model_path) if use_cuda else torch.load(model_path,
                                                                             map_location=torch.device('cpu'))
-            model.load_state_dict(checkpoint.state_dict())
+            model.load_state_dict(checkpoint)
             model.to(device)
             epoch_test_loss, epoch_test_score = validation(get_X, model, device, loss_func, val_loader, val_topk)
             top_scores.append(epoch_test_score[0])
 
         print("Scores for each fold: ")
         print(top_scores)
-        print("Averaged score for {} fold: {:.2f}%".format(k, sum(top_scores) / len(top_scores)))
+        print("Averaged score for {} fold: {:.2f}%".format(args.k_fold, sum(top_scores) / len(top_scores)))

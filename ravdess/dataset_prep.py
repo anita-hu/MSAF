@@ -29,22 +29,26 @@ from video_utils import VideoProcessor
 
 def preprocess_video(dataset_folder):
     output_folder = os.path.join(dataset_folder, "preprocessed")
+    landmark_folder = os.path.join(dataset_folder, "landmarks")
 
     for each_actor in glob.glob(os.path.join(dataset_folder, "Actor*")):
         actor_name = os.path.basename(each_actor)
         output_actor_folder = os.path.join(output_folder, actor_name)
+
         if not os.path.exists(output_actor_folder):
-            os.mkdir(output_actor_folder)
+            os.makedirs(output_actor_folder)
 
         for each_video in glob.glob(os.path.join(each_actor, "*.mp4")):
             name = each_video.split("/")[-1].split("-")[0]
             if int(name) == 2:
                 continue
             video_name = os.path.basename(each_video)
+            landmark_path = os.path.join(landmark_folder, video_name[:-4] + '.csv')
             frames_folder = os.path.join(output_actor_folder, video_name)
             if not os.path.exists(frames_folder):
                 os.mkdir(frames_folder)
-            video_processor = VideoProcessor(video_path=each_video, output_folder=frames_folder, extract_audio=True)
+            video_processor = VideoProcessor(video_path=each_video, landmark_path=landmark_path,
+                                             output_folder=frames_folder, extract_audio=True)
             video_processor.preprocess(seq_len=30, target_resolution=(224, 224))
 
 

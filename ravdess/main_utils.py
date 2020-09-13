@@ -34,22 +34,21 @@ def train(get_X, log_interval, model, device, train_loader, optimizer, loss_func
     for batch_idx, sample in enumerate(train_loader):
         # distribute data to device
         X, n = get_X(device, sample)
-        y = sample["emotion"].to(device)  # dim = (batch, 1)
-        with torch.autograd.detect_anomaly():
-            output = model(X)
+        y = sample["emotion"].to(device).squeeze()
+        output = model(X)
 
-            N_count += n
-            optimizer.zero_grad()
+        N_count += n
+        optimizer.zero_grad()
 
-            loss = loss_func(output, y)
-            losses.append(loss.item())
+        loss = loss_func(output, y)
+        losses.append(loss.item())
 
-            step_score = accuracy_topk(output, y, topk=metric_topk)
-            for i, ss in enumerate(step_score):
-                scores[i].append(int(ss))
+        step_score = accuracy_topk(output, y, topk=metric_topk)
+        for i, ss in enumerate(step_score):
+            scores[i].append(int(ss))
 
-            loss.backward()
-            optimizer.step()
+        loss.backward()
+        optimizer.step()
 
         # show information
         if (batch_idx + 1) % log_interval == 0:
@@ -73,7 +72,7 @@ def validation(get_X, model, device, loss_func, val_loader, metric_topk, show_cm
         for sample in val_loader:
             # distribute data to device
             X, _ = get_X(device, sample)
-            y = sample["emotion"].to(device)
+            y = sample["emotion"].to(device).squeeze()
             output = model(X)
 
             loss = loss_func(output, y)

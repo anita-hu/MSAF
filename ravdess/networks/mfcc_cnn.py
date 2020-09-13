@@ -27,9 +27,9 @@ class Flatten(nn.Module):
         return input.view(input.size(0), -1)
 
 
-class mfccNet(nn.Module):
+class MFCCNet(nn.Module):
     def __init__(self, features_only=False):
-        super(mfccNet, self).__init__()
+        super(MFCCNet, self).__init__()
         self.features_only = features_only
         self.conv1 = nn.Conv1d(in_channels=13, out_channels=32, kernel_size=7, stride=1, padding=2)
         self.bn1 = nn.BatchNorm1d(32)

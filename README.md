@@ -1,5 +1,7 @@
 ## MSAF: Multimodal Split Attention Fusion
 
+Code for the paper [MSAF: Multimodal Split Attention Fusion](). This is our implementation of the MSAF module and the three MSAF-powered multimodal networks. 
+
 If you use this code, please cite our paper:
 ```
 

@@ -21,14 +21,14 @@
 import os
 import cv2
 import numpy as np
-import face_recognition
 from moviepy.editor import VideoFileClip
 
 
 class VideoProcessor(object):
-    def __init__(self, video_path, output_folder, extract_audio):
+    def __init__(self, video_path, landmark_path, output_folder, extract_audio):
         # path of the video file
         self.video_path = video_path
+        self.landmarks_path = landmark_path
         self.extract_audio = extract_audio
         self.frames_folder = os.path.join(output_folder, "frames")
         self.audios_folder = os.path.join(output_folder, "audios")
@@ -54,25 +54,31 @@ class VideoProcessor(object):
             video.audio.write_audiofile(os.path.join(self.audios_folder, "audio.wav"))
 
         times = list(np.arange(0, video.duration, video.duration/seq_len))
-        if len(times) < 30:
+        if len(times) < seq_len:
             times.append(video.duration)
-        times = times[:30]
+        times = times[:seq_len]
 
-        for t in times:
+        # extract 2D points from csv
+        data = np.genfromtxt(self.landmarks_path, delimiter=',')[1:]
+        lm_times = [int(np.ceil(t)) for t in list(np.arange(0, len(data), len(data) / seq_len))]
+        if len(lm_times) < seq_len:
+            lm_times.append(len(data) - 1)
+        lm_times = lm_times[:seq_len]
+        index_x = (298, 366)
+        index_y = (366, 433)
+        landmarks_2d_x = [data[t, index_x[0] - 1:index_x[1] - 1] * (1 / 1280) for t in lm_times]
+        landmarks_2d_y = [data[t, index_y[0] - 1:index_y[1]] * (1 / 720) for t in lm_times]
+
+        for i, t in enumerate(times):
             img = cv2.cvtColor(video.get_frame(t), cv2.COLOR_BGR2RGB)
-            # extract landmarks and crop
-            landmark = face_recognition.face_landmarks(img)
-            points = []
-            for each_key in landmark:
-                for each_point in landmark[each_key]:
-                    points.append(each_point)
+            # extract roi from landmarks and crop
+            xs, ys = landmarks_2d_x[i], landmarks_2d_y[i]
+            bottom = int(max(ys) * img.shape[0])
+            right = int(max(xs) * img.shape[1])
+            top = int(min(ys) * img.shape[0])
+            left = int(min(xs) * img.shape[1])
 
-            up = int(max(points, key=lambda p: p[1])[1])
-            right = int(max(points, key=lambda p: p[0])[0])
-            bottom = int(min(points, key=lambda p: p[1])[1])
-            left = int(min(points, key=lambda p: p[0])[0])
-            cropped = cv2.resize(img[bottom:up, left:right, :], target_resolution)
-
+            cropped = cv2.resize(img[top:bottom, left:right, :], target_resolution)
             cv2.imwrite(os.path.join(self.frames_folder, "frame_{0:.2f}.jpg".format(t)), cropped)
 
-        print("Video duration {} seconds. Extracted {} frames".format(str(video.duration), str(len(times))))
+        print("Video duration {} seconds. Extracted {} frames".format(video.duration, len(times)))
