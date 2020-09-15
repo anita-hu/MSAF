@@ -4,7 +4,7 @@ This code along with our trained weights reproduces our results on RAVDESS datas
 ## Setup
 Install dependencies
 ```
-pip install opencv-python moviepy librosa
+pip install opencv-python moviepy librosa sklearn
 ```
 Download the RAVDESS dataset and unzip
 - [Audio_Speech_Actors_01-24.zip](https://zenodo.org/record/1188976)
@@ -43,16 +43,17 @@ RAVDESS/
                     .npy MFCC features
             ...
 ```
+Download checkpoints folder from [Google Drive](https://drive.google.com/drive/folders/1WchLLueLT27Zqeaj4JmhpB6UFGds5wpF?usp=sharing)
 
 ## Evaluate
 ```
-python main_msaf.py --datadir <path/to/RAVDESS> \
+python main_msaf.py --datadir <path/to/RAVDESS/preprocessed> \
 --checkpointdir checkpoints
 ```
 
 ## Train
 ```
-python main_msaf.py --datadir <path/to/RAVDESS> \ 
+python main_msaf.py --datadir <path/to/RAVDESS/preprocessed> \ 
 --checkpointdir checkpoints --train \
 ```
 All parameters

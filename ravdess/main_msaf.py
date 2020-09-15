@@ -185,9 +185,8 @@ if __name__ == "__main__":
             best_acc_1 = 0
             for epoch in range(args.epochs):
                 # train, test model
-                train_losses, train_scores = train(get_X, args.log_interval, multimodal_model, device,
-                                                   training_loader, optimizer, loss_func,
-                                                   training_topk, epoch)
+                train_losses, train_scores = train(get_X, args.log_interval, multimodal_model, device, training_loader,
+                                                   optimizer, loss_func, training_topk, epoch)
                 epoch_test_loss, epoch_test_score = validation(get_X, multimodal_model, device, loss_func, val_loader,
                                                                val_topk)
 
@@ -200,17 +199,16 @@ if __name__ == "__main__":
                 # save results
                 writer.add_scalar('Loss/train', np.mean(train_losses), epoch)
                 writer.add_scalar('Loss/test', epoch_test_loss, epoch)
-                for each_k_i, each_k in enumerate(training_topk):
-                    writer.add_scalar('Scores_top{}/train'.format(each_k), np.mean(train_scores[each_k_i]), epoch)
-                for each_k_i, each_k in enumerate(val_topk):
-                    writer.add_scalar('Scores_top{}/test'.format(each_k), np.mean(epoch_test_score[each_k_i]), epoch)
+                for each_k, k_score in zip(training_topk, train_scores):
+                    writer.add_scalar('Scores_top{}/train'.format(each_k), np.mean(k_score), epoch)
+                for each_k, k_score in zip(val_topk, epoch_test_score):
+                    writer.add_scalar('Scores_top{}/test'.format(each_k), np.mean(k_score), epoch)
                 test.append(epoch_test_score)
                 writer.flush()
             test = np.array(test)
-            for each_k_i, each_k in enumerate(val_topk):
-                max_idx = np.argmax(test[:, each_k_i])
-                print('Best top {} test score {:.2f}% at epoch {}'.format(each_k, test[:, each_k_i][max_idx],
-                                                                          max_idx + 1))
+            for j, each_k in enumerate(val_topk):
+                max_idx = np.argmax(test[:, j])
+                print('Best top {} test score {:.2f}% at epoch {}'.format(each_k, test[:, j][max_idx], max_idx + 1))
             top_scores.append(test[:, 0].max())
         print("Scores for each fold: ")
         print(top_scores)

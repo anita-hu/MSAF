@@ -29,5 +29,5 @@ This code was developed with Python 3.6, PyTorch 1.5.1 in Ubuntu 20.04
     - [NTU RGB+D](ntu_rgb_d/README.md)
 
 ## Usage
-- The MSAF module is available in MSAF.py
-- For training and evaluation on the datasets, see README in each folder for more details
+- The MSAF module is implemented in MSAF.py
+- The README file in each dataset folder has details on data preprocessing, training and evaluation
