@@ -34,10 +34,9 @@ from main_utils import train, validation
 
 # Parameters
 modalities = ["video", "audio"]
-num_msaf_blocks = 2  # this parameter is only used for naming
 
 # setting seed
-seed = 1234  # used for weight initialization
+seed = 1234
 torch.autograd.set_detect_anomaly(True)
 np.random.seed(seed)
 torch.manual_seed(seed)  # cpu
