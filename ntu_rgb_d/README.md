@@ -30,23 +30,19 @@ To evaluate one checkpoint file
 python main_msaf.py --datadir <path/to/NTU> \
 --checkpointdir checkpoints \
 --test_cp msaf_ntu_epoch12_92.24.checkpoint \
---no_bad_skel --rgb_net i3d --vid_len 32 32
+--no_bad_skel
 ```
 To evaluate all msaf checkpoints in a folder
 ```
 python main_msaf.py --datadir <path/to/NTU> \
 --checkpointdir checkpoints \
---no_bad_skel --rgb_net i3d --vid_len 32 32
+--no_bad_skel
 ```
 
 ## Train
 ```
 python main_msaf.py --datadir <path/to/NTU> \
---checkpointdir checkpoints --train \
---ske_cp skeleton_32frames_85.24.checkpoint \
---rgb_net i3d \
---rgb_cp i3d_32frames_85.63.checkpoint \
---vid_len 32 32
+--checkpointdir checkpoints --train
 ```
 All parameters
 ```
@@ -60,7 +56,14 @@ usage: main_msaf.py [-h] [--rgb_net {resnet,i3d}]
                     [--no_bad_skel] [--no_norm]
                     [--fc_final_preds FC_FINAL_PREDS] [--train]
 ```
-If you want to train with resnet as the RGB model, download pretrained checkpoint `rgb_8frames_83.91.checkpoint` from [Google Drive link](https://drive.google.com/drive/folders/1wcIepkmCf2NRfnhXVdoNu6wSxkpZmMNm) and use `--vid_len [8 32]` and `--rgb_net resnet`
+If you want to train with resnet as the RGB model, download pretrained checkpoint `rgb_8frames_83.91.checkpoint` from [Google Drive link](https://drive.google.com/drive/folders/1wcIepkmCf2NRfnhXVdoNu6wSxkpZmMNm) and use 
+```
+python main_msaf.py --datadir <path/to/NTU> \
+--checkpointdir checkpoints --train \
+--rgb_net resnet \
+--rgb_cp rgb_8frames_83.91.checkpoint \
+--vid_len 8 32
+```
 
 ## Reference
 This code is built upon the [MMTM github repository](https://github.com/haamoon/mmtm) and the [MFAS github repository](https://github.com/juanmanpr/mfas)

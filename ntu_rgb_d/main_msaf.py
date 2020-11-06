@@ -44,19 +44,19 @@ from msaf_ntu import MSAFNet
 # %% Parse inputs
 def parse_args():
     parser = argparse.ArgumentParser(description='Modality optimization.')
-    parser.add_argument('--rgb_net', type=str, help='name of rgb model that is loaded', default='resnet',
+    parser.add_argument('--rgb_net', type=str, help='name of rgb model that is loaded', default='i3d',
                         choices=['resnet', 'i3d'])
     parser.add_argument('--checkpointdir', type=str, help='output base dir', default='checkpoints')
     parser.add_argument('--datadir', type=str, help='data directory', default='dataset')
     parser.add_argument('--ske_cp', type=str, help='Skeleton net checkpoint (assuming is contained in checkpointdir)',
                         default='skeleton_32frames_85.24.checkpoint')
     parser.add_argument('--rgb_cp', type=str, help='RGB net checkpoint (assuming is contained in checkpointdir)',
-                        default='rgb_8frames_83.91.checkpoint')
+                        default='i3d_32frames_85.63.checkpoint')
     parser.add_argument('--test_cp', type=str, help='Full net checkpoint (assuming is contained in checkpointdir)',
                         default='')
     parser.add_argument('--num_outputs', type=int, help='output dimension', default=60)
     parser.add_argument('--batchsize', type=int, help='batch size', default=4)
-    parser.add_argument('--epochs', type=int, help='training epochs', default=70)
+    parser.add_argument('--epochs', type=int, help='training epochs', default=50)
     parser.add_argument('--use_dataparallel', help='Use several GPUs', action='store_true', dest='use_dataparallel',
                         default=False)
     parser.add_argument('--j', dest='num_workers', type=int, help='Dataloader CPUS', default=16)
@@ -64,7 +64,7 @@ def parse_args():
     parser.add_argument('--no-verbose', help='verbose', action='store_false', dest='verbose', default=True)
     parser.add_argument('--no-multitask', dest='multitask', help='Multitask loss', action='store_false', default=True)
 
-    parser.add_argument("--vid_len", action="store", default=(8, 32), dest="vid_len", type=int, nargs='+',
+    parser.add_argument("--vid_len", action="store", default=(32, 32), dest="vid_len", type=int, nargs='+',
                         help="length of video, as a tuple of two lengths, (rgb len, skel len)")
     parser.add_argument("--drpt", action="store", default=0.4, dest="drpt", type=float, help="dropout")
 
