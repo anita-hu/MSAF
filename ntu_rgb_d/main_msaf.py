@@ -56,7 +56,7 @@ def parse_args():
                         default='')
     parser.add_argument('--num_outputs', type=int, help='output dimension', default=60)
     parser.add_argument('--batchsize', type=int, help='batch size', default=4)
-    parser.add_argument('--epochs', type=int, help='training epochs', default=50)
+    parser.add_argument('--epochs', type=int, help='training epochs', default=20)
     parser.add_argument('--use_dataparallel', help='Use several GPUs', action='store_true', dest='use_dataparallel',
                         default=False)
     parser.add_argument('--j', dest='num_workers', type=int, help='Dataloader CPUS', default=16)

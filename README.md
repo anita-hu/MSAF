@@ -14,12 +14,16 @@ git clone --recurse-submodules https://github.com/anita-hu/MSAF.git
 ```
 Install dependencies
 
-**Method 1**: Using requirements.txt (installs dependencies for all three datasets)
+**Method 1**: Using environment.yml (installs dependencies for all three datasets)
 ```
-conda create --name msaf --file requirements.txt
+conda env create -f environment.yml
+```
+Activate conda environment
+```
+conda activate msaf
 ```
 
-**Method 2**: Without requirements.txt
+**Method 2**: Without environment.yml
 
 This code was developed with Python 3.6, PyTorch 1.5.1 in Ubuntu 20.04
 - Basic dependencies (needed for all datasets): [Pytorch](https://pytorch.org/get-started/previous-versions/), Tensorboard
