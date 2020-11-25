@@ -33,15 +33,15 @@ class Flatten(nn.Module):
 class MSAFNet(nn.Module):
     def __init__(self, model_param):
         super(MSAFNet, self).__init__()
-        # The index before the given will be a group whose output will be passing to a msaf
+        # The inputs to these layers will be passed through msaf before being passed into the layer
         self.msaf_locations = {
             "video": [6, 7],
             "audio": [5, 11],
         }
         # MSAF blocks
         self.msaf = nn.ModuleList([
-            MSAF(in_channels=[1024, 32], block_channel=16, block_dropout=0.2, reduction_factor=4),  # [1024, 32, 128]
-            MSAF(in_channels=[2048, 64], block_channel=32, block_dropout=0.2, reduction_factor=4)   # [2048, 64, 256]
+            MSAF(in_channels=[1024, 32], block_channel=16, block_dropout=0.2, reduction_factor=4),
+            MSAF(in_channels=[2048, 64], block_channel=32, block_dropout=0.2, reduction_factor=4)
         ])
         self.num_msaf = len(self.msaf)
 
@@ -97,8 +97,6 @@ class MSAFNet(nn.Module):
                 x[self.video_id] = self.video_model_blocks[i](x[self.video_id])
             if hasattr(self, "audio_id"):
                 x[self.audio_id] = self.audio_model_blocks[i](x[self.audio_id])
-            if hasattr(self, "landmark_id"):
-                x[self.landmark_id] = self.landmark_model_blocks[i](x[self.landmark_id])
             if i < self.num_msaf:
                 x = self.msaf[i](x)
                 

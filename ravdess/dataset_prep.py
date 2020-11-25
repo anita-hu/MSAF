@@ -65,16 +65,12 @@ def get_audio_paths(path):
 def mfcc_features(dataset_folder):
     path = os.path.join(dataset_folder, "preprocessed")
     files = get_audio_paths(path)
-    # The sampling rate of each file is doubled keeping sampling frequency constant to get more features
-    # which will help classify the audio file when the size of dataset is small.
-    data = []
     for f in tqdm(files):
         X, sample_rate = librosa.load(os.path.join(f, 'audios/audio.wav'),
                                       duration=2.45, sr=22050 * 2, offset=0.5)
         sample_rate = np.array(sample_rate)
         mfccs = librosa.feature.mfcc(y=X, sr=sample_rate, n_mfcc=13)
         np.save(os.path.join(f, 'audios/featuresMFCC.npy'), mfccs)
-        data.append(mfccs)
 
 
 if __name__ == "__main__":

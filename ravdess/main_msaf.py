@@ -56,9 +56,6 @@ def get_X(device, sample):
     if "audio" in modalities:
         mfcc = sample["mfcc"].to(device)
         ret.append(mfcc)
-    if "landmark" in modalities:
-        landmarks = sample["landmarks_2d"].to(device)
-        ret.append(landmarks)
     n = ret[0].size(0)
     return ret, n
 

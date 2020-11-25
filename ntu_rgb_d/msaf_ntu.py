@@ -149,7 +149,7 @@ class MSAFNet(nn.Module):
         sk_hidden[1].append(out5_p1)
 
         out5_max = torch.max(out5_p0, out5_p1)
-        #################################################################
+
         ################################################ VISUAL INIT BLOCK
         # Changing temporal and channel dim to fit the inflated resnet input requirements
         B, T, W, H, C = frames.size()
@@ -228,7 +228,7 @@ class MSAFNet(nn.Module):
         ########################################## THIRD msaf
         # final_fm, out8 => final_fm, out8
         final_fm, out8 = self.msaf2([final_fm, out8])
-        ### #######################################
+        ##########################################
 
         # skeleton
         outf = self.skeleton.fc8(out8)

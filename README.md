@@ -15,12 +15,10 @@ git clone --recurse-submodules https://github.com/anita-hu/MSAF.git
 Install dependencies
 
 **Method 1**: Using environment.yml (installs dependencies for all three datasets)
+
+With this method, you can skip dependency installation steps from the dataset specific README files
 ```
 conda env create -f environment.yml
-```
-Activate conda environment
-```
-conda activate msaf
 ```
 
 **Method 2**: Without environment.yml
