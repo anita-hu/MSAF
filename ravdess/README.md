@@ -43,7 +43,10 @@ RAVDESS/
                     .npy MFCC features
             ...
 ```
-Download checkpoints folder from [Google Drive](https://drive.google.com/drive/folders/1WchLLueLT27Zqeaj4JmhpB6UFGds5wpF?usp=sharing)
+Download checkpoints folder from [Google Drive](https://drive.google.com/drive/folders/14NqAECoZ58tlpkKtr8FiRtT7j_zOZCYN) using
+```
+bash download_checkpoints.sh
+```
 
 ## Evaluate
 ```
