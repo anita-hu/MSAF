@@ -22,6 +22,7 @@ import glob
 import os
 import datetime
 import argparse
+import random
 import torch
 import numpy as np
 from torch.utils.tensorboard import SummaryWriter
@@ -37,7 +38,7 @@ modalities = ["video", "audio"]
 
 # setting seed
 seed = 1234
-torch.autograd.set_detect_anomaly(True)
+random.seed(seed)
 np.random.seed(seed)
 torch.manual_seed(seed)  # cpu
 torch.cuda.manual_seed_all(seed)  # gpu
