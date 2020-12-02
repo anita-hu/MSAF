@@ -6,14 +6,15 @@ Install dependencies
 ```
 pip install opencv-python moviepy librosa sklearn
 ```
-Download the RAVDESS dataset manually or using the bash script
-- [All Video_Speech_Actors_##.zip files](https://zenodo.org/record/1188976)
-- [FacialTracking_Actors_01-24.zip](https://zenodo.org/record/3255102) 
+Download the RAVDESS dataset using the bash script
 ```
 bash download_ravdess.sh <path/to/RAVDESS>
 ```
+Or download the files manually 
+- [All Video_Speech_Actors_##.zip files](https://zenodo.org/record/1188976)
+- [FacialTracking_Actors_01-24.zip](https://zenodo.org/record/3255102) 
 
-Follow the folder structure below and have .csv files in `landmarks/` (do not modify file names)
+and follow the folder structure below and have .csv files in `landmarks/` (do not modify file names)
 ```
 RAVDESS/
     landmarks/
