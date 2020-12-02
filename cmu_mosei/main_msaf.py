@@ -184,7 +184,7 @@ if __name__ == '__main__':
             checkpoint = torch.load(model_path) if use_cuda else torch.load(model_path,
                                                                             map_location=torch.device('cpu'))
             multimodal_model.load_state_dict(checkpoint['model_state_dict'])
-            print('Loaded model from ', model_path)
+            print('Loaded model from', model_path)
             test_set = CMUMOSEIDataset(test_folder, dataset_params)
             test_loader = data.DataLoader(test_set, **params)
             epoch_test_loss, epoch_test_score = validation(get_X, multimodal_model, device, val_loss_func, test_loader,
