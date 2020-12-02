@@ -10,8 +10,7 @@ Download the RAVDESS dataset manually or using the bash script
 - [All Video_Speech_Actors_##.zip files](https://zenodo.org/record/1188976)
 - [FacialTracking_Actors_01-24.zip](https://zenodo.org/record/3255102) 
 ```
-mkdir <path/to/RAVDESS> && cd <path/to/RAVDESS>
-bash download_ravdess.sh
+bash download_ravdess.sh <path/to/RAVDESS>
 ```
 
 Follow the folder structure below and have .csv files in `landmarks/` (do not modify file names)
