@@ -42,9 +42,9 @@ class MSAFNet(nn.Module):
 
         if args.rgb_net == 'resnet':
             # self.msaf0 = MSAF(in_channels=[512, 128], block_channel=64, block_dropout=0, reduction_factor=4)
-            self.msaf1 = MSAF(in_channels=[1024, 256], block_channel=128, block_dropout=0, lowest_atten=0.,
-                              reduction_factor=2)
-            self.msaf2 = MSAF(in_channels=[2048, 512], block_channel=256, block_dropout=0.2, lowest_atten=0.,
+            self.msaf1 = MSAF(in_channels=[1024, 128, 128], block_channel=64, block_dropout=0, lowest_atten=0.5,
+                              reduction_factor=4)
+            self.msaf2 = MSAF(in_channels=[2048, 512], block_channel=256, block_dropout=0, lowest_atten=0.5,
                               reduction_factor=4)
         elif args.rgb_net == 'i3d':
             # self.msaf0 = MSAF(in_channels=[832, 128], block_channel=8, block_dropout=0, reduction_factor=4)
