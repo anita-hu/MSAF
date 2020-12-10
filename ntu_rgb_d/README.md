@@ -38,7 +38,15 @@ python main_msaf.py --datadir <path/to/NTU> \
 --checkpointdir checkpoints \
 --no_bad_skel
 ```
-
+To evaluate with resnet as the RGB model, download the pretrained checkpoint from [Google Drive](https://drive.google.com/drive/u/0/folders/14tjkHojPH4S7pZnIk4DXXI49I-6mTKqe)
+```
+python main_msaf.py --datadir <path/to/NTU> \
+--checkpointdir checkpoints \
+--rgb_net resnet \
+--test_cp msaf_ntu_resnet_hcn_epoch7_90.51.checkpoint \
+--no_bad_skel \
+--vid_len 8 32
+```
 ## Train
 ```
 python main_msaf.py --datadir <path/to/NTU> \
