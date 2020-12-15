@@ -43,7 +43,7 @@ To evaluate with resnet as the RGB model, download the pretrained checkpoint fro
 python main_msaf.py --datadir <path/to/NTU> \
 --checkpointdir checkpoints \
 --rgb_net resnet \
---test_cp msaf_ntu_resnet_hcn_epoch7_90.51.checkpoint \
+--test_cp msaf_ntu_resnet_hcn_epoch10_90.63.checkpoint \
 --no_bad_skel \
 --vid_len 8 32
 ```
