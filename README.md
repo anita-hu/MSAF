@@ -1,5 +1,6 @@
 ## MSAF: Multimodal Split Attention Fusion
 [![arXiv](https://img.shields.io/badge/arXiv-2012.07175-b31b1b.svg)](https://arxiv.org/abs/2012.07175)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/msaf-multimodal-split-attention-fusion/action-recognition-in-videos-on-ntu-rgbd)](https://paperswithcode.com/sota/action-recognition-in-videos-on-ntu-rgbd?p=msaf-multimodal-split-attention-fusion)
 
 Code for the paper [MSAF: Multimodal Split Attention Fusion](https://arxiv.org/abs/2012.07175). This is our implementation of the MSAF module and the three MSAF-powered multimodal networks. 
 
