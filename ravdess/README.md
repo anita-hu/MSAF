@@ -8,7 +8,7 @@ pip install opencv-python moviepy librosa sklearn
 ```
 Download the RAVDESS dataset using the bash script
 ```
-bash download_ravdess.sh <path/to/RAVDESS>
+bash scripts/download_ravdess.sh <path/to/RAVDESS>
 ```
 Or download the files manually 
 - [All Video_Speech_Actors_##.zip files](https://zenodo.org/record/1188976)
@@ -47,9 +47,10 @@ RAVDESS/
                     .npy MFCC features
             ...
 ```
-Download checkpoints folder from [Google Drive](https://drive.google.com/drive/folders/14NqAECoZ58tlpkKtr8FiRtT7j_zOZCYN) using
+Download checkpoints folder from [Google Drive](https://drive.google.com/drive/folders/14NqAECoZ58tlpkKtr8FiRtT7j_zOZCYN). 
+The following script downloads all pretrained models (unimodal and MSAF) for all 6 folds.
 ```
-bash download_checkpoints.sh
+bash scripts/download_checkpoints.sh
 ```
 
 ## Evaluate
