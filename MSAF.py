@@ -24,7 +24,7 @@ import torch.nn.functional as F
 import math
 
 
-# The probability of dropping a chunk
+# The probability of dropping a block
 class BlockDropout(nn.Module):
     def __init__(self, p: float = 0.5):
         super(BlockDropout, self).__init__()
@@ -36,7 +36,7 @@ class BlockDropout(nn.Module):
 
     def forward(self, X):
         if self.training:
-            blocks_per_mod = [sx.shape[1] for sx in X]
+            blocks_per_mod = [x.shape[1] for x in X]
             mask_size = torch.Size([X[0].shape[0], sum(blocks_per_mod)])
             binomial = torch.distributions.binomial.Binomial(probs=1 - self.p)
             mask = binomial.sample(mask_size) * (1.0 / (1 - self.p))
