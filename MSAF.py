@@ -26,28 +26,26 @@ import math
 
 # The probability of dropping a chunk
 class BlockDropout(nn.Module):
-    def __init__(self, p: float = 0.5, inplace: bool = False):
+    def __init__(self, p: float = 0.5):
         super(BlockDropout, self).__init__()
         if p < 0 or p > 1:
             raise ValueError(
                 "dropout probability has to be between 0 and 1, " "but got {}".format(p)
             )
         self.p: float = p
-        self.inplace: bool = inplace
 
-    def forward(self, x):
+    def forward(self, X):
         if self.training:
-            total_blocks = sum([len(sx) for sx in x])
-            mask_size = torch.Size([total_blocks])
+            blocks_per_mod = [sx.shape[1] for sx in X]
+            mask_size = torch.Size([X[0].shape[0], sum(blocks_per_mod)])
             binomial = torch.distributions.binomial.Binomial(probs=1 - self.p)
             mask = binomial.sample(mask_size) * (1.0 / (1 - self.p))
-            mask_id = 0
-            for mod in x:
-                for x_mod in mod:
-                    x_mod *= mask[mask_id]
-                    mask_id += 1
-            return x, mask
-        return x, None
+            mask_shapes = [list(x.shape[:2]) + [1] * (x.dim() - 2) for x in X]
+            grouped_masks = torch.split(mask, blocks_per_mod, dim=1)
+            grouped_masks = [m.reshape(s) for m, s in zip(grouped_masks, mask_shapes)]
+            X = [x * m for x, m in zip(X, grouped_masks)]
+            return X, grouped_masks
+        return X, None
 
 
 # squeeze dim default 1: i.e. channel in (bs, channel, height, width, ...)
@@ -65,7 +63,7 @@ class MSAFBlock(nn.Module):
         self.lowest_atten = lowest_atten
         self.num_modality = len(in_channels)
         self.reduced_channel = self.block_channel // reduction_factor
-        self.block_dropout = BlockDropout(p=block_dropout, inplace=True) if 0 < block_dropout < 1 else None
+        self.block_dropout = BlockDropout(p=block_dropout) if 0 < block_dropout < 1 else None
         self.joint_features = nn.Sequential(
             nn.Linear(self.block_channel, self.reduced_channel),
             nn.BatchNorm1d(self.reduced_channel),
@@ -73,6 +71,7 @@ class MSAFBlock(nn.Module):
         )
         self.num_blocks = [math.ceil(ic / self.block_channel) for ic in
                            in_channels]  # number of blocks for each modality
+        self.last_block_padding = [ic % self.block_channel for ic in in_channels]
         self.dense_group = nn.ModuleList([nn.Linear(self.reduced_channel, self.block_channel)
                                           for i in range(sum(self.num_blocks))])
         self.soft_attention = nn.Softmax(dim=0)
@@ -84,41 +83,38 @@ class MSAFBlock(nn.Module):
         for bc, ic in zip(bs_ch, self.in_channels):
             assert bc[1] == ic, "X shape and in_channels are different. X channel {} but got {}".format(str(bc[1]),
                                                                                                         str(ic))
-        # split each modality into chunks
-        spliced_x = [list(torch.split(x, self.block_channel, dim=1)) for x, bc in zip(X, bs_ch)]
         # pad channel if block_channel non divisible
-        for sx in spliced_x:
-            padding_shape = list(sx[-1].size())
-            padding_shape[1] = self.block_channel - sx[-1].shape[1]
-            sx[-1] = torch.cat([sx[-1], torch.zeros(torch.Size(padding_shape)).to(self.device)], dim=1)
+        padded_X = [F.pad(x, (0, pad_size)) for pad_size, x in zip(self.last_block_padding, X)]
 
-        # apply BlockDropout
+        # reshape each feature map: [batch size, N channels, ...] -> [batch size, N blocks, block channel, ...]
+        desired_shape = [[x.shape[0], nb, self.block_channel] + list(x.shape[2:]) for x, nb in zip(padded_X, self.num_blocks)]
+        reshaped_X = [torch.reshape(x, ds) for x, ds in zip(padded_X, desired_shape)]
+
         if self.block_dropout:
-            spliced_x, mask = self.block_dropout(spliced_x)
-        # element wise sum
-        spliced_x_sum = [torch.stack(sx).sum(dim=0) for sx in spliced_x]
-        # global ave pooling on channel
-        gap = [F.adaptive_avg_pool1d(sx.view(list(sx.size()[:2]) + [-1]), 1) for sx in spliced_x_sum]
-        # combine GAP over modalities
+            reshaped_X, masks = self.block_dropout(reshaped_X)
+
+        # element wise sum of blocks then global ave pooling on channel
+        elem_sum_X = [torch.sum(x, dim=1) for x in reshaped_X]
+        gap = [F.adaptive_avg_pool1d(sx.view(list(sx.size()[:2]) + [-1]), 1) for sx in elem_sum_X]
+
+        # combine GAP over modalities and generate attention values
         gap = torch.stack(gap).sum(dim=0)  # / (self.num_modality - 1)
         gap = torch.squeeze(gap, -1)
         gap = self.joint_features(gap)
-        # pass into attention
-        atten = self.soft_attention(torch.stack([dg(gap) for dg in self.dense_group]))
-        # apply attention to each group
-        atten_id = 0
-        for sx_mod in spliced_x:
-            for sx_chunk in sx_mod:
-                att = self.lowest_atten + atten[atten_id] * (1 - self.lowest_atten)
-                ns = len(sx_chunk.size()) - len(att.size())
-                if self.block_dropout and self.training:
-                    sx_chunk *= (mask[atten_id] * att.view(list(att.size()) + ns * [1]))
-                else:
-                    sx_chunk *= (att.view(list(att.size()) + ns * [1]))
-                atten_id += 1
-        # concat channel wise
-        ret = [torch.cat(sx_mod, dim=1)[:, :ic] for sx_mod, ic in zip(spliced_x, self.in_channels)]
-        return ret
+        atten = self.soft_attention(torch.stack([dg(gap) for dg in self.dense_group])).permute(1, 0, 2)
+        atten = self.lowest_atten + atten * (1 - self.lowest_atten)
+
+        # apply attention values to features
+        atten_shapes = [list(x.shape[:3]) + [1] * (x.dim() - 3) for x in reshaped_X]
+        grouped_atten = torch.split(atten, self.num_blocks, dim=1)
+        grouped_atten = [a.reshape(s) for a, s in zip(grouped_atten, atten_shapes)]
+        if self.block_dropout and self.training:
+            reshaped_X = [x * m * a for x, m, a in zip(reshaped_X, masks, grouped_atten)]
+        else:
+            reshaped_X = [x * a for x, a in zip(reshaped_X, grouped_atten)]
+        X = [x.reshape(org_x.shape) for x, org_x in zip(reshaped_X, X)]
+
+        return X
 
 
 class MSAF(nn.Module):
@@ -136,7 +132,7 @@ class MSAF(nn.Module):
             ret = self.blocks[0](X)
             return ret
 
-        # split into multiple time segments
+        # split into multiple time segments, assumes in 2nd dim
         segmented_x = [list(torch.split(x, x.shape[2] // self.split_block, dim=2)) for x in X]
         for x in segmented_x:
             if len(x) > self.split_block:
@@ -153,9 +149,9 @@ class MSAF(nn.Module):
 
 if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    m1 = torch.rand(4, 64, 50).to(device)
-    m2 = torch.rand(4, 32, 53).to(device)
+    m1 = torch.rand(4, 32, 64, 64, 50).to(device)
+    m2 = torch.rand(4, 16, 32, 32, 53).to(device)
     x = [m1, m2]
-    net = MSAF([64, 32], 16, block_dropout=0.2, reduction_factor=4, split_block=5).to(device)
+    net = MSAF([32, 16], 8, block_dropout=0.2, reduction_factor=4, split_block=5).to(device)
     y = net(x)
     print(y[0].shape, y[1].shape)
