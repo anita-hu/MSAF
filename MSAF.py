@@ -128,20 +128,17 @@ class MSAF(nn.Module):
 
     # X: a list of features from different modalities
     def forward(self, X):
-        if self.split_block == 1:
-            ret = self.blocks[0](X)
-            return ret
+        # split into N time segments, assumes in 2nd dim
+        # by default N=1, does not split
+        segment_shapes = [[x.shape[2] // self.split_block] * self.split_block for x in X]
+        for x, seg_shape in zip(X, segment_shapes):
+            seg_shape[-1] += x.shape[2] % self.split_block
+        segmented_x = [torch.split(x, seg_shape, dim=2) for x, seg_shape in zip(X, segment_shapes)]
 
-        # split into multiple time segments, assumes in 2nd dim
-        segmented_x = [list(torch.split(x, x.shape[2] // self.split_block, dim=2)) for x in X]
-        for x in segmented_x:
-            if len(x) > self.split_block:
-                x[-2] = torch.cat(x[-2:], dim=2)
+        # apply MSAF
+        ret_segments = [self.blocks[i]([x[i] for x in segmented_x]) for i in range(self.split_block)]
 
-        ret_segments = []
-        for i in range(self.split_block):
-            ret_segments.append(self.blocks[i]([x[i] for x in segmented_x]))
-
+        # put segments back together
         ret = [torch.cat([r[m] for r in ret_segments], dim=2) for m in range(self.num_modality)]
 
         return ret
