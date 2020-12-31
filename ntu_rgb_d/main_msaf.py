@@ -224,7 +224,8 @@ def test_mmtm_track_acc(model, dataloaders, dataset_sizes, device=None, multitas
 def test_model(model, dataloaders, args, device):
     dataset_sizes = {x: len(dataloaders[x].dataset) for x in ['train', 'test', 'dev']}
     filename = os.path.join(args.checkpointdir, args.test_cp)
-    model.load_state_dict(torch.load(filename))
+    checkpoint = torch.load(filename, map_location=device) if device == 'cpu' else torch.load(filename)
+    model.load_state_dict(checkpoint)
     print('Loading ' + filename)
 
     # hardware tuning
@@ -269,7 +270,7 @@ if __name__ == "__main__":
     print(args, end='\n\n')
 
     use_gpu = torch.cuda.is_available()
-    device = torch.device("cuda:0" if use_gpu else "cpu")
+    device = torch.device("cuda" if use_gpu else "cpu")
 
     dataloaders = get_dataloaders(args)
 
