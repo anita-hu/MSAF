@@ -115,7 +115,7 @@ if __name__ == '__main__':
     visual_field = 'CMU_MOSEI_VisualFacet42'
     acoustic_field = 'CMU_MOSEI_COVAREP'
     text_field = 'CMU_MOSEI_TimestampedWords'
-    label_field = 'CMU_MOSEI_All_Labels'
+    label_field = 'CMU_MOSEI_Labels'
 
     features = [
         text_field,
