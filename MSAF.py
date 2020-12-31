@@ -39,7 +39,7 @@ class BlockDropout(nn.Module):
             blocks_per_mod = [x.shape[1] for x in X]
             mask_size = torch.Size([X[0].shape[0], sum(blocks_per_mod)])
             binomial = torch.distributions.binomial.Binomial(probs=1 - self.p)
-            mask = binomial.sample(mask_size) * (1.0 / (1 - self.p))
+            mask = binomial.sample(mask_size).to(X[0].device) * (1.0 / (1 - self.p))
             mask_shapes = [list(x.shape[:2]) + [1] * (x.dim() - 2) for x in X]
             grouped_masks = torch.split(mask, blocks_per_mod, dim=1)
             grouped_masks = [m.reshape(s) for m, s in zip(grouped_masks, mask_shapes)]
