@@ -106,8 +106,7 @@ def step(branch, input_data, optimizers, criteria, is_training):
     return loss, preds1, preds2, preds
 
 
-def train_mmtm_track_acc(model, criteria, optimizers, dataloaders, dataset_sizes, device=None, num_epochs=200,
-                         verbose=False, multitask=False):
+def train_mmtm_track_acc(model, criteria, optimizers, dataloaders, device=None, num_epochs=200):
     torch.autograd.set_detect_anomaly(True)
     best_model_sd = copy.deepcopy(model.state_dict())
     best_loss = float('inf')
@@ -189,7 +188,7 @@ def train_mmtm_track_acc(model, criteria, optimizers, dataloaders, dataset_sizes
     return best_loss
 
 
-def test_mmtm_track_acc(model, dataloaders, dataset_sizes, device=None, multitask=False):
+def test_mmtm_track_acc(model, dataloaders, device=None):
     model.train(False)
     phase = 'test'
 
