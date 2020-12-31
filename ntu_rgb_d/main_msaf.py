@@ -231,8 +231,7 @@ def test_model(model, dataloaders, args, device):
     if torch.cuda.device_count() > 1 and args.use_dataparallel:
         model = torch.nn.DataParallel(model)
     model.to(device)
-    test_model_acc = test_mmtm_track_acc(model, dataloaders, dataset_sizes,
-                                         device=device, multitask=args.multitask)
+    test_model_acc = test_mmtm_track_acc(model, dataloaders, device=device)
     return test_model_acc
 
 
@@ -256,10 +255,8 @@ def train_model(model, dataloaders, args, device):
         model = torch.nn.DataParallel(model)
     model.to(device)
 
-    val_model_acc = train_mmtm_track_acc(model, criteria, optimizers, dataloaders,
-                                         dataset_sizes, device=device,
-                                         num_epochs=args.epochs, verbose=args.verbose,
-                                         multitask=args.multitask)
+    val_model_acc = train_mmtm_track_acc(model, criteria, optimizers, dataloaders, device=device,
+                                         num_epochs=args.epochs)
     return val_model_acc
 
 
