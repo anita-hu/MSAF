@@ -32,7 +32,7 @@ conda env create -f environment.yml
 
 **Method 2**: Without environment.yml
 
-This code was developed with Python 3.6, PyTorch 1.5.1 in Ubuntu 20.04
+This code was developed with Python 3.6, PyTorch 1.7.1 in Ubuntu 20.04. 
 - Basic dependencies (needed for all datasets): [Pytorch](https://pytorch.org/get-started/previous-versions/), Tensorboard
 - Dataset specific dependencies: see README file in each dataset folder
 
