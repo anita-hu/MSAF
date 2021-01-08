@@ -32,10 +32,6 @@ from networks import *
 from ravdess import RAVDESSDataset
 from main_utils import train, validation
 
-
-# Parameters
-modalities = ["video", "audio"]
-
 # setting seed
 seed = 1234
 random.seed(seed)
@@ -49,16 +45,11 @@ torch.backends.cudnn.deterministic = True
 
 # define model input
 def get_X(device, sample):
-    ret = []
-    if "video" in modalities:
-        images = sample["images"].to(device)
-        images = images.permute(0, 2, 1, 3, 4)  # swap to be (N, C, D, H, W)
-        ret.append(images)
-    if "audio" in modalities:
-        mfcc = sample["mfcc"].to(device)
-        ret.append(mfcc)
-    n = ret[0].size(0)
-    return ret, n
+    images = sample["images"].to(device)
+    images = images.permute(0, 2, 1, 3, 4)  # swap to be (N, C, D, H, W)
+    mfcc = sample["mfcc"].to(device)
+    n = images[0].size(0)
+    return [images, mfcc], n
 
 
 if __name__ == "__main__":
@@ -114,69 +105,71 @@ if __name__ == "__main__":
     val_topk = (1, 2, 4,)
 
     all_folder = sorted(list(glob.glob(os.path.join(args.datadir, "Actor*"))))
+    s = int(len(all_folder) / args.k_fold)  # size of a fold
+    top_scores = []
 
-    # train mode or eval mode
-    if args.train:
-        # kfold training
-        s = int(len(all_folder) / args.k_fold)
-        top_scores = []
-        for i in range(args.k_fold):
-            val_fold = all_folder[i * s: i * s + s]
+    for i in range(args.k_fold):
+        print("Fold " + str(i + 1))
+
+        # define dataset
+        if args.train:
             train_fold = all_folder[:i * s] + all_folder[i * s + s:]
-            training_set = RAVDESSDataset(train_fold, modality=modalities, transform=train_transform)
+            training_set = RAVDESSDataset(train_fold, transform=train_transform)
             training_loader = data.DataLoader(training_set, **params)
-            val_set = RAVDESSDataset(val_fold, modality=modalities, transform=val_transform)
-            val_loader = data.DataLoader(val_set, **params)
-
-            print("Fold " + str(i + 1))
             print("Train fold: ")
             print([os.path.basename(act) for act in train_fold])
-            print("val fold: ")
-            print([os.path.basename(act) for act in val_fold])
 
             # record training process
             current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
             train_log_dir = os.path.join(args.checkpointdir, 'logs/fold{}_{}'.format(i + 1, current_time))
             writer = SummaryWriter(log_dir=train_log_dir)
 
-            # define model
-            model_param = {}
-            if "video" in modalities:
-                video_model = resnet50(
-                    num_classes=8,
-                    shortcut_type='B',
-                    cardinality=32,
-                    sample_size=224,
-                    sample_duration=30)
-                video_model_path = os.path.join(args.checkpointdir, "resnext50/fold_{}_resnext50_best.pth".format(i+1))
-                video_model_checkpoint = torch.load(video_model_path) if use_cuda else \
-                    torch.load(video_model_path, map_location=torch.device('cpu'))
-                video_model.load_state_dict(video_model_checkpoint)
-                model_param.update(
-                    {"video": {
-                        "model": video_model,
-                        "id": modalities.index("video")
-                    }})
+        val_fold = all_folder[i * s: i * s + s]
+        val_set = RAVDESSDataset(val_fold, transform=val_transform)
+        val_loader = data.DataLoader(val_set, **params)
+        print("val fold: ")
+        print([os.path.basename(act) for act in val_fold])
 
-            if "audio" in modalities:
-                audio_model = MFCCNet()
-                audio_model_path = os.path.join(args.checkpointdir, "mfccNet/fold_{}_mfccNet_best.pth".format(i + 1))
-                audio_model_checkpoint = torch.load(audio_model_path) if use_cuda else \
-                    torch.load(audio_model_path, map_location=torch.device('cpu'))
-                audio_model.load_state_dict(audio_model_checkpoint)
-                model_param.update(
-                    {"audio": {
-                        "model": audio_model,
-                        "id": modalities.index("audio")
-                    }})
+        # define model
+        # video model
+        model_param = {}
+        video_model = resnet50(
+            num_classes=8,
+            shortcut_type='B',
+            cardinality=32,
+            sample_size=224,
+            sample_duration=30)
+        audio_model = MFCCNet()
+        if args.train:
+            video_model_path = os.path.join(args.checkpointdir,
+                                            "resnext50/fold_{}_resnext50_best.pth".format(i + 1))
+            video_model_checkpoint = torch.load(video_model_path) if use_cuda else \
+                torch.load(video_model_path, map_location=torch.device('cpu'))
+            video_model.load_state_dict(video_model_checkpoint)
+            audio_model_path = os.path.join(args.checkpointdir,
+                                            "mfccNet/fold_{}_mfccNet_best.pth".format(i + 1))
+            audio_model_checkpoint = torch.load(audio_model_path) if use_cuda else \
+                torch.load(audio_model_path, map_location=torch.device('cpu'))
+            audio_model.load_state_dict(audio_model_checkpoint)
 
-            multimodal_model = MSAFNet(model_param)
-            multimodal_model.to(device)
+        model_param = {
+            "video": {
+                "model": video_model,
+                "id": 0
+            },
+            "audio": {
+                "model": audio_model,
+                "id": 1
+            }
+        }
+        multimodal_model = MSAFNet(model_param)
+        multimodal_model.to(device)
 
+        # train / evaluate models
+        if args.train:
             # Adam parameters
             num_parameters = multimodal_model.parameters()
             optimizer = torch.optim.Adam(num_parameters, lr=args.lr)
-
             # keep track of epoch test scores
             test = []
             best_acc_1 = 0
@@ -207,56 +200,18 @@ if __name__ == "__main__":
                 max_idx = np.argmax(test[:, j])
                 print('Best top {} test score {:.2f}% at epoch {}'.format(each_k, test[:, j][max_idx], max_idx + 1))
             top_scores.append(test[:, 0].max())
-        print("Scores for each fold: ")
-        print(top_scores)
-        print("Averaged score for {} fold training: {:.2f}%".format(args.k_fold, sum(top_scores) / len(top_scores)))
 
-    else:
-        # kfold eval
-        s = int(len(all_folder) / args.k_fold)
-        top_scores = []
-        for i in range(args.k_fold):
-            val_fold = all_folder[i * s: i * s + s]
-            train_fold = all_folder[:i * s] + all_folder[i * s + s:]
-            val_set = RAVDESSDataset(val_fold, modality=modalities, transform=val_transform)
-            val_loader = data.DataLoader(val_set, **params)
-
-            print("Fold " + str(i + 1))
-            print("val fold: ")
-            print([os.path.basename(act) for act in val_fold])
-
-            # define model
-            model_param = {}
-            if "video" in modalities:
-                video_model = resnet50(
-                    num_classes=8,
-                    shortcut_type='B',
-                    cardinality=32,
-                    sample_size=224,
-                    sample_duration=30)
-                model_param.update(
-                    {"video": {
-                        "model": video_model,
-                        "id": modalities.index("video")
-                    }})
-
-            if "audio" in modalities:
-                audio_model = MFCCNet()
-                model_param.update(
-                    {"audio": {
-                        "model": audio_model,
-                        "id": modalities.index("audio")
-                    }})
-
+        else:
             model_path = os.path.join(args.checkpointdir, 'fold_{}_msaf_ravdess_best.pth'.format(i + 1))
-            model = MSAFNet(model_param)
             checkpoint = torch.load(model_path) if use_cuda else torch.load(model_path,
                                                                             map_location=torch.device('cpu'))
-            model.load_state_dict(checkpoint)
-            model.to(device)
-            epoch_test_loss, epoch_test_score = validation(get_X, model, device, loss_func, val_loader, val_topk)
+            multimodal_model.load_state_dict(checkpoint)
+            epoch_test_loss, epoch_test_score = validation(get_X, multimodal_model, device, loss_func, val_loader, val_topk)
             top_scores.append(epoch_test_score[0])
 
         print("Scores for each fold: ")
         print(top_scores)
         print("Averaged score for {} fold: {:.2f}%".format(args.k_fold, sum(top_scores) / len(top_scores)))
+
+
+
