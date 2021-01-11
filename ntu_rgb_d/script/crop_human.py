@@ -10,7 +10,16 @@ from tool.torch_utils import do_detect
 import torch
 import numpy as np
 import cv2
+import argparse
 
+def parse_args():
+    parser = argparse.ArgumentParser(description='Human cropping.')
+    parser.add_argument('--yolo_weight_path', type=str, help='Yolov4 weight', default='/home/lang/Downloads/yolov4.pth')
+    parser.add_argument('--video_dir', type=str, help='NTU dataset folder', default='/home/lang/Data/project/msaf/NTU/')
+    parser.add_argument('--conf_thresh', type=float, help='Yolov4 confidence threshold', default=0.7)
+    parser.add_argument('--vid_len', type=int, help='video sequence length', default=24)
+    parser.add_argument('--step', type=int, help='step. Should be divisible by vid_len', default=8)
+    return parser.parse_args()
 
 def load_video(path, vid_len=24):
     cap = cv2.VideoCapture(path)
@@ -91,11 +100,12 @@ def visualization():
 
 
 if __name__ == "__main__":
-    yolo_weight_path = "/home/lang/Downloads/yolov4.pth"
-    video_dir = "/home/lang/Data/project/msaf/NTU/"
-    conf_thresh = 0.7  # confidence threshold
-    vid_len = 24  # this should be the same as ntu.py, which is default
-    step = 8  # batch
+    args = parse_args()
+    yolo_weight_path = args.yolo_weight_path
+    video_dir = args.video_dir
+    conf_thresh = args.conf_thresh
+    vid_len = args.vid_len
+    step = args.step
     assert vid_len % step == 0
 
     video_dir = os.path.join(video_dir, "nturgbd_rgb")
@@ -130,4 +140,4 @@ if __name__ == "__main__":
             # boxes[0] = [fixed_boxes + [1, 1, 0]]
             # class_names = load_class_names("pytorch-YOLOv4/data/coco.names")
             # plot_boxes_cv2(img, boxes[0], 'predictions.jpg', class_names)
-        np.save(os.path.join(output_dir, video_name+".npy"), np.array(video_boxes))
+        #np.save(os.path.join(output_dir, video_name+".npy"), np.array(video_boxes))
