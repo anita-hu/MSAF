@@ -4,3 +4,6 @@
 [submodule "ntu_rgb_d/mfas"]
 	path = ntu_rgb_d/mfas
 	url = https://github.com/anita-hu/mfas.git
+[submodule "ntu_rgb_d/pytorch-YOLOv4"]
+	path = ntu_rgb_d/pytorch-YOLOv4
+	url = https://github.com/kevinsu628/pytorch-YOLOv4.git
