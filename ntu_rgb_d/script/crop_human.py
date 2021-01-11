@@ -140,4 +140,4 @@ if __name__ == "__main__":
             # boxes[0] = [fixed_boxes + [1, 1, 0]]
             # class_names = load_class_names("pytorch-YOLOv4/data/coco.names")
             # plot_boxes_cv2(img, boxes[0], 'predictions.jpg', class_names)
-        #np.save(os.path.join(output_dir, video_name+".npy"), np.array(video_boxes))
+        np.save(os.path.join(output_dir, video_name+".npy"), np.array(video_boxes))
