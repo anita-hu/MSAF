@@ -42,7 +42,7 @@ def load_video(path, vid_len=24):
 def process_box(boxes):
     human_boxes = [b for b in boxes if b[-1] == 0]
     if len(human_boxes) == 0:  # if no human detected
-        return [0, 1, 0, 1]
+        return [0, 0, 1, 1]
     min_x1 = min([b[0] for b in human_boxes])
     max_x2 = max([b[2] for b in human_boxes])
     min_y1 = min([b[1] for b in human_boxes])
@@ -72,8 +72,11 @@ def process_boxes(boxes):
 
 # visualizing bbox for a video
 def visualization():
-    test_video = "/home/lang/Data/project/msaf/NTU/nturgbd_rgb/avi_256x256_30/S002C003P014R001A021_rgb.avi"
-    test_output = "/home/lang/Data/project/msaf/NTU/nturgbd_rgb/human_crop/S002C003P014R001A021_rgb.npy"
+    # first test path is two person, second is one person
+    # test_path = "/home/lang/Data/project/msaf/NTU/nturgbd_rgb/avi_256x256_30/S001C001P001R001A055_rgb.avi"
+    # test_path = "/home/lang/Data/project/msaf/NTU/nturgbd_rgb/avi_256x256_30/S001C001P001R001A001_rgb.avi"
+    test_video = "/home/lang/Data/project/msaf/NTU/nturgbd_rgb/avi_256x256_30/S014C002P025R001A011_rgb.avi"
+    test_output = "/home/lang/Data/project/msaf/NTU/nturgbd_rgb/human_crop/S014C002P025R001A011_rgb.npy"
     class_names = load_class_names("pytorch-YOLOv4/data/coco.names")
     video = load_video(test_video, 24)
     boxes = np.load(test_output)
@@ -84,13 +87,13 @@ def visualization():
         cv2.waitKey()
 
 
-visualization()
+# visualization()
 
-"""
+
 if __name__ == "__main__":
     yolo_weight_path = "/home/lang/Downloads/yolov4.pth"
     video_dir = "/home/lang/Data/project/msaf/NTU/"
-    conf_thresh = 0.9  # confidence threshold
+    conf_thresh = 0.7  # confidence threshold
     vid_len = 24  # this should be the same as ntu.py, which is default
     step = 8  # batch
     assert vid_len % step == 0
@@ -111,9 +114,6 @@ if __name__ == "__main__":
     if use_cuda:
         model.cuda()
 
-    # first test path is two person, second is one person
-    # test_path = "/home/lang/Data/project/msaf/NTU/nturgbd_rgb/avi_256x256_30/S001C001P001R001A055_rgb.avi"
-    # test_path = "/home/lang/Data/project/msaf/NTU/nturgbd_rgb/avi_256x256_30/S001C001P001R001A001_rgb.avi"
     for each_video in tqdm.tqdm(glob.glob(os.path.join(video_dir, "avi_256x256_30/*.avi"))):
         video = load_video(each_video, vid_len)
         video_name = os.path.basename(each_video).strip(".avi")
@@ -131,5 +131,3 @@ if __name__ == "__main__":
             # class_names = load_class_names("pytorch-YOLOv4/data/coco.names")
             # plot_boxes_cv2(img, boxes[0], 'predictions.jpg', class_names)
         np.save(os.path.join(output_dir, video_name+".npy"), np.array(video_boxes))
-
-"""
