@@ -76,6 +76,7 @@ def parse_args():
     parser.add_argument("--fc_final_preds", default=False, type=bool, help="Add fc layer to fuse modalities at the end")
 
     parser.add_argument('--train', action='store_true', default=False, help='training')
+    parser.add_argument('--human_crop', action='store_true', default=False, help='Use human bbox generated from yolov4')
     return parser.parse_args()
 
 
