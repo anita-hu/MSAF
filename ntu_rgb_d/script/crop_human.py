@@ -66,7 +66,8 @@ def process_box(boxes):
     else:
         max_y2 = min(ctr_y + side_diff_x / 2, 1)
         min_y1 = max(0, ctr_y - side_diff_x / 2)
-
+    min_x1, min_y1 = max(min_x1, 0), max(min_y1, 0)
+    max_x2, max_y2 = min(max_x2, 1), min(max_y2, 1)
     return [min_x1, min_y1, max_x2, max_y2]
 
 # process a batch of boxes
