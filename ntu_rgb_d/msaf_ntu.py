@@ -172,16 +172,13 @@ class MSAFNet(nn.Module):
             frames = transform_input(frames, rgb_resnet.layer2[0].input_dim, T=T)
             frames = rgb_resnet.layer2(frames)
             fm2 = frames
-        else:
-            fm2 = self.visual.features[:13](frames)
 
-        # visual
-        if self.rgb_net_name == 'resnet':
             # 3rd residual block
             frames = transform_input(frames, rgb_resnet.layer3[0].input_dim, T=T)
             frames = rgb_resnet.layer3(frames)
             fm3 = frames
         else:
+            fm2 = self.visual.features[:13](frames)
             fm3 = self.visual.features[13:15](fm2)
 
         ###################################### FIRST msaf

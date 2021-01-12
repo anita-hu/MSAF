@@ -221,9 +221,8 @@ def test_mmtm_track_acc(model, dataloaders, device=None):
 
 
 def test_model(model, dataloaders, args, device):
-    dataset_sizes = {x: len(dataloaders[x].dataset) for x in ['train', 'test', 'dev']}
     filename = os.path.join(args.checkpointdir, args.test_cp)
-    checkpoint = torch.load(filename, map_location=device) if device == 'cpu' else torch.load(filename)
+    checkpoint = torch.load(filename, map_location=device) if device.type == 'cpu' else torch.load(filename)
     model.load_state_dict(checkpoint)
     print('Loading ' + filename)
 
@@ -236,8 +235,6 @@ def test_model(model, dataloaders, args, device):
 
 
 def train_model(model, dataloaders, args, device):
-    dataset_sizes = {x: len(dataloaders[x].dataset) for x in ['train', 'test', 'dev']}
-
     criteria = torch.nn.CrossEntropyLoss()
 
     # loading pretrained weights

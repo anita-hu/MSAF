@@ -138,9 +138,11 @@ if __name__ == "__main__":
             shortcut_type='B',
             cardinality=32,
             sample_size=224,
-            sample_duration=30)
+            sample_duration=30
+        )
         audio_model = MFCCNet()
-        if args.train:
+
+        if args.train:  # load unimodal model weights
             video_model_path = os.path.join(args.checkpointdir,
                                             "resnext50/fold_{}_resnext50_best.pth".format(i + 1))
             video_model_checkpoint = torch.load(video_model_path) if use_cuda else \
@@ -201,17 +203,15 @@ if __name__ == "__main__":
                 print('Best top {} test score {:.2f}% at epoch {}'.format(each_k, test[:, j][max_idx], max_idx + 1))
             top_scores.append(test[:, 0].max())
 
-        else:
+        else:  # load and evaluate model
             model_path = os.path.join(args.checkpointdir, 'fold_{}_msaf_ravdess_best.pth'.format(i + 1))
             checkpoint = torch.load(model_path) if use_cuda else torch.load(model_path,
                                                                             map_location=torch.device('cpu'))
             multimodal_model.load_state_dict(checkpoint)
-            epoch_test_loss, epoch_test_score = validation(get_X, multimodal_model, device, loss_func, val_loader, val_topk)
+            epoch_test_loss, epoch_test_score = validation(get_X, multimodal_model, device, loss_func, val_loader,
+                                                           val_topk)
             top_scores.append(epoch_test_score[0])
 
         print("Scores for each fold: ")
         print(top_scores)
         print("Averaged score for {} fold: {:.2f}%".format(args.k_fold, sum(top_scores) / len(top_scores)))
-
-
-
