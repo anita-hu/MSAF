@@ -28,6 +28,7 @@ import torch.nn.functional as F
 from mfas.models.auxiliary.resnet.resnet import transform_input
 
 import sys
+
 sys.path.append('..')
 from MSAF import MSAF
 
@@ -41,13 +42,11 @@ class MSAFNet(nn.Module):
         self.final_pred = None
 
         if args.rgb_net == 'resnet':
-            # self.msaf0 = MSAF(in_channels=[512, 128], block_channel=64, block_dropout=0, reduction_factor=4)
             self.msaf1 = MSAF(in_channels=[1024, 128, 128], block_channel=64, block_dropout=0, lowest_atten=0.5,
                               reduction_factor=4)
             self.msaf2 = MSAF(in_channels=[2048, 512], block_channel=256, block_dropout=0, lowest_atten=0.5,
                               reduction_factor=4)
         elif args.rgb_net == 'i3d':
-            # self.msaf0 = MSAF(in_channels=[832, 128], block_channel=8, block_dropout=0, reduction_factor=4)
             self.msaf1 = MSAF(in_channels=[832, 128, 128], block_channel=64, block_dropout=0, lowest_atten=0.5,
                               reduction_factor=4)
             self.msaf2 = MSAF(in_channels=[1024, 512], block_channel=256, block_dropout=0, lowest_atten=0.5,
@@ -64,8 +63,6 @@ class MSAFNet(nn.Module):
 
     def get_msaf_params(self):
         parameters = []
-        if hasattr(self, "msaf0"):
-            parameters.append({'params': self.msaf0.parameters()})
         if hasattr(self, "msaf1"):
             parameters.append({'params': self.msaf1.parameters()})
         if hasattr(self, "msaf2"):
@@ -74,8 +71,6 @@ class MSAFNet(nn.Module):
 
     def get_visual_params(self):
         parameters = [{'params': self.visual.parameters()}]
-        if hasattr(self, "msaf0"):
-            parameters.append({'params': self.msaf0.parameters()})
         if hasattr(self, "msaf1"):
             parameters.append({'params': self.msaf1.parameters()})
         if hasattr(self, "msaf2"):
@@ -84,8 +79,6 @@ class MSAFNet(nn.Module):
 
     def get_skeleton_params(self):
         parameters = [{'params': self.skeleton.parameters()}]
-        if hasattr(self, "msaf0"):
-            parameters.append({'params': self.msaf0.parameters()})
         if hasattr(self, "msaf1"):
             parameters.append({'params': self.msaf1.parameters()})
         if hasattr(self, "msaf2"):
@@ -179,27 +172,17 @@ class MSAFNet(nn.Module):
             frames = transform_input(frames, rgb_resnet.layer2[0].input_dim, T=T)
             frames = rgb_resnet.layer2(frames)
             fm2 = frames
-        else:
-            fm2 = self.visual.features[:13](frames)
 
-        #################################### FIRST msaf
-        # fm2, out5_max ==> fm2, out5_p0 (out5_p1)
-        # fm2, out5_p0 = self.msaf0([fm2, out5_p0])
-        ####################################
-
-        # visual
-        if self.rgb_net_name == 'resnet':
             # 3rd residual block
             frames = transform_input(frames, rgb_resnet.layer3[0].input_dim, T=T)
             frames = rgb_resnet.layer3(frames)
             fm3 = frames
         else:
+            fm2 = self.visual.features[:13](frames)
             fm3 = self.visual.features[13:15](fm2)
 
-
-        ###################################### SECOND msaf
-        # fm3, out7 ==> fm3, out7
-        # fm3, out7 = self.msaf1([fm3, out7])
+        ###################################### FIRST msaf
+        # fm3, out5_p0 (first person), out5_p1 (second person) => fm3, out5_p0, out5_p1
         fm3, out5_p0, out5_p1 = self.msaf1([fm3, out5_p0, out5_p1])
         ######################################
 
@@ -224,8 +207,7 @@ class MSAFNet(nn.Module):
         else:
             final_fm = self.visual.features[15](fm3)
 
-
-        ########################################## THIRD msaf
+        ########################################## SECOND msaf
         # final_fm, out8 => final_fm, out8
         final_fm, out8 = self.msaf2([final_fm, out8])
         ##########################################

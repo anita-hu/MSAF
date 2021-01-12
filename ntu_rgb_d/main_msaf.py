@@ -106,8 +106,7 @@ def step(branch, input_data, optimizers, criteria, is_training):
     return loss, preds1, preds2, preds
 
 
-def train_mmtm_track_acc(model, criteria, optimizers, dataloaders, dataset_sizes, device=None, num_epochs=200,
-                         verbose=False, multitask=False):
+def train_mmtm_track_acc(model, criteria, optimizers, dataloaders, device=None, num_epochs=200):
     torch.autograd.set_detect_anomaly(True)
     best_model_sd = copy.deepcopy(model.state_dict())
     best_loss = float('inf')
@@ -189,7 +188,7 @@ def train_mmtm_track_acc(model, criteria, optimizers, dataloaders, dataset_sizes
     return best_loss
 
 
-def test_mmtm_track_acc(model, dataloaders, dataset_sizes, device=None, multitask=False):
+def test_mmtm_track_acc(model, dataloaders, device=None):
     model.train(False)
     phase = 'test'
 
@@ -222,23 +221,20 @@ def test_mmtm_track_acc(model, dataloaders, dataset_sizes, device=None, multitas
 
 
 def test_model(model, dataloaders, args, device):
-    dataset_sizes = {x: len(dataloaders[x].dataset) for x in ['train', 'test', 'dev']}
     filename = os.path.join(args.checkpointdir, args.test_cp)
-    model.load_state_dict(torch.load(filename))
+    checkpoint = torch.load(filename, map_location=device) if device.type == 'cpu' else torch.load(filename)
+    model.load_state_dict(checkpoint)
     print('Loading ' + filename)
 
     # hardware tuning
     if torch.cuda.device_count() > 1 and args.use_dataparallel:
         model = torch.nn.DataParallel(model)
     model.to(device)
-    test_model_acc = test_mmtm_track_acc(model, dataloaders, dataset_sizes,
-                                         device=device, multitask=args.multitask)
+    test_model_acc = test_mmtm_track_acc(model, dataloaders, device=device)
     return test_model_acc
 
 
 def train_model(model, dataloaders, args, device):
-    dataset_sizes = {x: len(dataloaders[x].dataset) for x in ['train', 'test', 'dev']}
-
     criteria = torch.nn.CrossEntropyLoss()
 
     # loading pretrained weights
@@ -256,10 +252,8 @@ def train_model(model, dataloaders, args, device):
         model = torch.nn.DataParallel(model)
     model.to(device)
 
-    val_model_acc = train_mmtm_track_acc(model, criteria, optimizers, dataloaders,
-                                         dataset_sizes, device=device,
-                                         num_epochs=args.epochs, verbose=args.verbose,
-                                         multitask=args.multitask)
+    val_model_acc = train_mmtm_track_acc(model, criteria, optimizers, dataloaders, device=device,
+                                         num_epochs=args.epochs)
     return val_model_acc
 
 
@@ -269,7 +263,7 @@ if __name__ == "__main__":
     print(args, end='\n\n')
 
     use_gpu = torch.cuda.is_available()
-    device = torch.device("cuda:0" if use_gpu else "cpu")
+    device = torch.device("cuda" if use_gpu else "cpu")
 
     dataloaders = get_dataloaders(args)
 
