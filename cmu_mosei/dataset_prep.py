@@ -70,6 +70,9 @@ if __name__ == '__main__':
     TEST_PATH = os.path.join(DATA_PATH, 'test')
     DATASET = md.cmu_mosei
 
+    if not os.path.isdir(DATA_PATH):
+        os.mkdir(DATA_PATH)
+
     try:
         os.mkdir(CSD_PATH)
     except OSError as error:
