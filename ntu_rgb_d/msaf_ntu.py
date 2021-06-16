@@ -38,19 +38,31 @@ class MSAFNet(nn.Module):
         super(MSAFNet, self).__init__()
         self.visual = None
         self.rgb_net_name = args.rgb_net
+        self.msaf_loc = args.msaf_loc
+        print("MSAF locations", self.msaf_loc)
         self.skeleton = None
         self.final_pred = None
 
         if args.rgb_net == 'resnet':
-            self.msaf1 = MSAF(in_channels=[1024, 128, 128], block_channel=64, block_dropout=0, lowest_atten=0.5,
-                              reduction_factor=4)
-            self.msaf2 = MSAF(in_channels=[2048, 512], block_channel=256, block_dropout=0, lowest_atten=0.5,
-                              reduction_factor=4)
+            if 0 in self.msaf_loc:
+                self.msaf0 = MSAF(in_channels=[512, 128, 128], block_channel=64, block_dropout=0, lowest_atten=0.5,
+                                  reduction_factor=4)
+            if 1 in self.msaf_loc:
+                self.msaf1 = MSAF(in_channels=[1024, 128, 128], block_channel=64, block_dropout=0, lowest_atten=0.5,
+                                  reduction_factor=4)
+            if 2 in self.msaf_loc:
+                self.msaf2 = MSAF(in_channels=[2048, 512], block_channel=256, block_dropout=0, lowest_atten=0.5,
+                                  reduction_factor=4)
         elif args.rgb_net == 'i3d':
-            self.msaf1 = MSAF(in_channels=[832, 128, 128], block_channel=64, block_dropout=0, lowest_atten=0.5,
-                              reduction_factor=4)
-            self.msaf2 = MSAF(in_channels=[1024, 512], block_channel=256, block_dropout=0, lowest_atten=0.5,
-                              reduction_factor=4)
+            if 0 in self.msaf_loc:
+                self.msaf0 = MSAF(in_channels=[832, 128, 128], block_channel=64, block_dropout=0, lowest_atten=0.5,
+                                  reduction_factor=4)
+            if 1 in self.msaf_loc:
+                self.msaf1 = MSAF(in_channels=[832, 128, 128], block_channel=64, block_dropout=0, lowest_atten=0.5,
+                                  reduction_factor=4)
+            if 2 in self.msaf_loc:
+                self.msaf2 = MSAF(in_channels=[1024, 512], block_channel=256, block_dropout=0, lowest_atten=0.5,
+                                  reduction_factor=4)
         else:
             print("RGB net not resnet or i3d")
             raise NotImplementedError
@@ -63,6 +75,8 @@ class MSAFNet(nn.Module):
 
     def get_msaf_params(self):
         parameters = []
+        if hasattr(self, "msaf0"):
+            parameters.append({'params': self.msaf0.parameters()})
         if hasattr(self, "msaf1"):
             parameters.append({'params': self.msaf1.parameters()})
         if hasattr(self, "msaf2"):
@@ -71,6 +85,8 @@ class MSAFNet(nn.Module):
 
     def get_visual_params(self):
         parameters = [{'params': self.visual.parameters()}]
+        if hasattr(self, "msaf0"):
+            parameters.append({'params': self.msaf0.parameters()})
         if hasattr(self, "msaf1"):
             parameters.append({'params': self.msaf1.parameters()})
         if hasattr(self, "msaf2"):
@@ -79,6 +95,8 @@ class MSAFNet(nn.Module):
 
     def get_skeleton_params(self):
         parameters = [{'params': self.skeleton.parameters()}]
+        if hasattr(self, "msaf0"):
+            parameters.append({'params': self.msaf0.parameters()})
         if hasattr(self, "msaf1"):
             parameters.append({'params': self.msaf1.parameters()})
         if hasattr(self, "msaf2"):
@@ -136,13 +154,6 @@ class MSAFNet(nn.Module):
         out4_p0 = sk_hidden[0][-1]
         out4_p1 = sk_hidden[1][-1]
 
-        out5_p0 = self.skeleton.conv5(out4_p0)
-        sk_hidden[0].append(out5_p0)
-        out5_p1 = self.skeleton.conv5(out4_p1)
-        sk_hidden[1].append(out5_p1)
-
-        out5_max = torch.max(out5_p0, out5_p1)
-
         ################################################ VISUAL INIT BLOCK
         # Changing temporal and channel dim to fit the inflated resnet input requirements
         B, T, W, H, C = frames.size()
@@ -172,18 +183,34 @@ class MSAFNet(nn.Module):
             frames = transform_input(frames, rgb_resnet.layer2[0].input_dim, T=T)
             frames = rgb_resnet.layer2(frames)
             fm2 = frames
+        else:
+            fm2 = self.visual.features[:13](frames)
 
+        ###################################### FIRST msaf
+        # fm2, out4_p0 (first person), out4_p1 (second person) => fm2, out4_p0, out4_p1
+        if 0 in self.msaf_loc:
+            fm2, out4_p0, out4_p1 = self.msaf0([fm2, out4_p0, out4_p1])
+        ######################################
+
+        out5_p0 = self.skeleton.conv5(out4_p0)
+        sk_hidden[0].append(out5_p0)
+        out5_p1 = self.skeleton.conv5(out4_p1)
+        sk_hidden[1].append(out5_p1)
+
+        out5_max = torch.max(out5_p0, out5_p1)
+
+        if self.rgb_net_name == 'resnet':
             # 3rd residual block
             frames = transform_input(frames, rgb_resnet.layer3[0].input_dim, T=T)
             frames = rgb_resnet.layer3(frames)
             fm3 = frames
         else:
-            fm2 = self.visual.features[:13](frames)
             fm3 = self.visual.features[13:15](fm2)
 
-        ###################################### FIRST msaf
+        ###################################### SECOND msaf
         # fm3, out5_p0 (first person), out5_p1 (second person) => fm3, out5_p0, out5_p1
-        fm3, out5_p0, out5_p1 = self.msaf1([fm3, out5_p0, out5_p1])
+        if 1 in self.msaf_loc:
+            fm3, out5_p0, out5_p1 = self.msaf1([fm3, out5_p0, out5_p1])
         ######################################
 
         # skeleton
@@ -207,9 +234,10 @@ class MSAFNet(nn.Module):
         else:
             final_fm = self.visual.features[15](fm3)
 
-        ########################################## SECOND msaf
+        ########################################## THIRD msaf
         # final_fm, out8 => final_fm, out8
-        final_fm, out8 = self.msaf2([final_fm, out8])
+        if 2 in self.msaf_loc:
+            final_fm, out8 = self.msaf2([final_fm, out8])
         ##########################################
 
         # skeleton

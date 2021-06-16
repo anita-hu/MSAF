@@ -66,6 +66,8 @@ def parse_args():
 
     parser.add_argument("--vid_len", action="store", default=(32, 32), dest="vid_len", type=int, nargs='+',
                         help="length of video, as a tuple of two lengths, (rgb len, skel len)")
+    parser.add_argument("--msaf_loc", action="store", default=(1, 2), dest="msaf_loc", type=int, nargs='+',
+                        help="location and number of msaf blocks (0=early, 1=middle, 2=late). Best: (1, 2)")
     parser.add_argument("--drpt", action="store", default=0.4, dest="drpt", type=float, help="dropout")
 
     parser.add_argument('--no_bad_skel', action="store_true",

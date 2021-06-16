@@ -54,14 +54,15 @@ python main_msaf.py --datadir <path/to/NTU> \
 ```
 All parameters
 ```
-usage: main_msaf.py [-h] [--rgb_net {resnet,i3d}]
-                    [--checkpointdir CHECKPOINTDIR] [--datadir DATADIR]
-                    [--ske_cp SKE_CP] [--rgb_cp RGB_CP] [--test_cp TEST_CP]
-                    [--num_outputs NUM_OUTPUTS] [--batchsize BATCHSIZE]
-                    [--epochs EPOCHS] [--use_dataparallel] [--j NUM_WORKERS]
-                    [--modality MODALITY] [--no-verbose] [--no-multitask]
-                    [--vid_len VID_LEN [VID_LEN ...]] [--drpt DRPT]
-                    [--no_bad_skel] [--no_norm]
+usage: main_msaf.py [-h] [--rgb_net {resnet,i3d}]                                                                                   
+                    [--checkpointdir CHECKPOINTDIR] [--datadir DATADIR]                                                             
+                    [--ske_cp SKE_CP] [--rgb_cp RGB_CP] [--test_cp TEST_CP]                                                         
+                    [--num_outputs NUM_OUTPUTS] [--batchsize BATCHSIZE]                                                             
+                    [--epochs EPOCHS] [--use_dataparallel] [--j NUM_WORKERS]                                                        
+                    [--modality MODALITY] [--no-verbose] [--no-multitask]                                                           
+                    [--vid_len VID_LEN [VID_LEN ...]]                                                                               
+                    [--msaf_loc MSAF_LOC [MSAF_LOC ...]] [--drpt DRPT]                                                              
+                    [--no_bad_skel] [--no_norm]                                                                                     
                     [--fc_final_preds FC_FINAL_PREDS] [--train]
 ```
 If you want to train with resnet as the RGB model, download pretrained checkpoint `rgb_8frames_83.91.checkpoint` from [Google Drive link](https://drive.google.com/drive/folders/1wcIepkmCf2NRfnhXVdoNu6wSxkpZmMNm) and use 
